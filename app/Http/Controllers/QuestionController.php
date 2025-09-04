@@ -46,15 +46,34 @@ class QuestionController extends Controller
     }
 
     public function update(Request $request, Question $question)
-    {
-        $request->validate([
-            'question_text' => 'required|string',
-            'question_type' => 'required|string|in:radio,checkbox,text', 
-        ]);
+{
+    $request->validate([
+        'question_text' => 'required|string',
+        'question_type' => 'required|string|in:radio,checkbox,text',
+        'options' => 'sometimes|array'
+    ]);
 
-        $question->update($request->only('question_text', 'question_type'));
-        return redirect()->route('questions.index')->with('success', 'Question updated!');
+    // Update question text and type
+    $question->update($request->only('question_text', 'question_type'));
+
+    // Handle options for multiple choice questions
+    if (in_array($request->question_type, ['radio', 'checkbox'])) {
+        $options = $request->input('options', []);
+
+        // Delete old options
+        $question->options()->delete();
+
+        // Add new options
+        foreach ($options as $optionText) {
+            $question->options()->create(['option_text' => $optionText]);
+        }
+    } else {
+        // If question type is text, remove all options
+        $question->options()->delete();
     }
+
+    return redirect()->route('questions.index')->with('success', 'Question updated successfully!');
+}
 
     public function destroy(Question $question)
     {
