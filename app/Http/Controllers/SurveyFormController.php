@@ -41,19 +41,37 @@ class SurveyFormController extends Controller
     }
 
 
-    public function submit(Request $request)
-    {
-        $responses = $request->input('responses', []);
+   public function submit(Request $request)
+{
+    $questions = Question::pluck('id')->toArray(); 
 
-        foreach ($responses as $question_id => $choice_id) {
+  
+    foreach ($questions as $question_id) {
+        if (!isset($request->responses[$question_id]) || empty($request->responses[$question_id])) {
+            return redirect()->back()->withErrors('Please answer all questions before submitting.')->withInput();
+        }
+    }
+
+
+    foreach ($request->responses as $question_id => $choice_id) {
+        if (is_array($choice_id)) { 
+            foreach ($choice_id as $c_id) {
+                Response::create([
+                    'question_id' => $question_id,
+                    'choice_id' => $c_id
+                ]);
+            }
+        } else {
             Response::create([
                 'question_id' => $question_id,
                 'choice_id' => $choice_id
             ]);
         }
-
-        return redirect()->route('surveyform.index')->with('success', 'Survey submitted successfully!');
     }
+
+    return redirect()->route('surveyform.index')->with('success', 'Survey submitted successfully!');
+}
+
 
    
     public function statistics()

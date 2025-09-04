@@ -49,41 +49,69 @@
         </div>
     </form>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            let currentQuestion = 0;
-            const questions = document.querySelectorAll('.question');
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
-            const submitBtn = document.getElementById('submitBtn');
+   <script>
+document.addEventListener('DOMContentLoaded', function () {
+    let currentQuestion = 0;
+    const questions = document.querySelectorAll('.question');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const submitBtn = document.getElementById('submitBtn');
 
-            function showQuestion(n) {
-                if (questions.length === 0) return;
-                questions.forEach(q => q.classList.remove('active'));
-                questions[n].classList.add('active');
+    function showQuestion(n) {
+        questions.forEach(q => q.classList.remove('active'));
+        questions[n].classList.add('active');
 
-                prevBtn.style.display = n === 0 ? 'none' : 'inline';
-                nextBtn.style.display = n === questions.length - 1 ? 'none' : 'inline';
-                submitBtn.style.display = n === questions.length - 1 ? 'inline' : 'none';
-            }
+        prevBtn.style.display = n === 0 ? 'none' : 'inline';
+        nextBtn.style.display = n === questions.length - 1 ? 'none' : 'inline';
+        submitBtn.style.display = n === questions.length - 1 ? 'inline' : 'none';
+    }
 
-            window.nextPrev = function(n) {
-                currentQuestion += n;
-                if (currentQuestion >= questions.length) currentQuestion = questions.length - 1;
-                if (currentQuestion < 0) currentQuestion = 0;
-                showQuestion(currentQuestion);
-            };
+    function validateQuestion(n) {
+        const questionBlock = questions[n];
+        const inputs = questionBlock.querySelectorAll('input');
+        let answered = false;
 
-            // Show the first question on page load
-            if (questions.length > 0) {
-                showQuestion(currentQuestion);
-            } else {
-                // If no questions, hide navigation and submit
-                prevBtn.style.display = 'none';
-                nextBtn.style.display = 'none';
-                submitBtn.style.display = 'none';
+        inputs.forEach(input => {
+            if ((input.type === 'radio' || input.type === 'checkbox') && input.checked) {
+                answered = true;
+            } else if (input.type === 'text' && input.value.trim() !== '') {
+                answered = true;
             }
         });
-    </script>
+
+        if (!answered) {
+            alert('Please answer this question before proceeding.');
+        }
+
+        return answered;
+    }
+
+    window.nextPrev = function(n) {
+        if (n === 1 && !validateQuestion(currentQuestion)) return;
+        currentQuestion += n;
+        if (currentQuestion >= questions.length) currentQuestion = questions.length - 1;
+        if (currentQuestion < 0) currentQuestion = 0;
+        showQuestion(currentQuestion);
+    };
+
+    document.getElementById('surveyForm').addEventListener('submit', function(e) {
+        // Validate all questions before submitting
+        for (let i = 0; i < questions.length; i++) {
+            if (!validateQuestion(i)) {
+                e.preventDefault();
+                return;
+            }
+        }
+    });
+
+    if (questions.length > 0) showQuestion(currentQuestion);
+    else {
+        prevBtn.style.display = 'none';
+        nextBtn.style.display = 'none';
+        submitBtn.style.display = 'none';
+    }
+});
+</script>
+
 </body>
 </html>
