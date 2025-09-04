@@ -32,7 +32,7 @@
                 <button type="submit" onclick="return confirm('Delete this question?')">Delete</button>
             </form> |
             @if(in_array($question->question_type, ['radio','checkbox']))
-                <a href="{{ route('options.index', ['question_id' => $question->id]) }}">Options</a>
+                <a href="{{ route('options.index', ['question_id' => $question->id]) }}">Manage Choices</a>
             @endif
         </td>
     </tr>
