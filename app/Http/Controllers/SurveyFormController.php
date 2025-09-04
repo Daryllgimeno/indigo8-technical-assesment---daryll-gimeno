@@ -15,24 +15,22 @@ class SurveyFormController extends Controller
         return view('surveyform.index', compact('questions'));
     }
 
-     public function store(Request $request)
+  
+    public function store(Request $request)
     {
         $request->validate([
-            'question_text' => 'required',
-            'type_of_question' => 'required',
+            'question_text' => 'required|string',
+            'type_of_question' => 'required|string',
             'choices.*' => 'nullable|string'
         ]);
 
       
         $question = Question::create($request->only('question_text', 'type_of_question'));
 
-       
-        if ($request->type_of_question === 'multiple_choice' || $request->type_of_question === 'checkbox') {
-            if($request->has('choices')) {
-                foreach($request->choices as $choice_text) {
-                    if($choice_text) {
-                        $question->choices()->create(['choice_text' => $choice_text]);
-                    }
+        if (in_array($request->type_of_question, ['multiple_choice', 'checkbox']) && $request->has('choices')) {
+            foreach ($request->choices as $choice_text) {
+                if ($choice_text) {
+                    $question->choices()->create(['choice_text' => $choice_text]);
                 }
             }
         }
@@ -40,40 +38,48 @@ class SurveyFormController extends Controller
         return redirect()->back()->with('success', 'Question added successfully!');
     }
 
-
-   public function submit(Request $request)
-{
-    $questions = Question::pluck('id')->toArray(); 
-
-  
-    foreach ($questions as $question_id) {
-        if (!isset($request->responses[$question_id]) || empty($request->responses[$question_id])) {
-            return redirect()->back()->withErrors('Please answer all questions before submitting.')->withInput();
-        }
-    }
-
-
-    foreach ($request->responses as $question_id => $choice_id) {
-        if (is_array($choice_id)) { 
-            foreach ($choice_id as $c_id) {
-                Response::create([
-                    'question_id' => $question_id,
-                    'choice_id' => $c_id
-                ]);
-            }
-        } else {
-            Response::create([
-                'question_id' => $question_id,
-                'choice_id' => $choice_id
-            ]);
-        }
-    }
-
-    return redirect()->route('surveyform.index')->with('success', 'Survey submitted successfully!');
-}
-
-
    
+    public function submit(Request $request)
+    {
+        $request->validate([
+            'responses' => 'required|array',
+        ]);
+
+        foreach ($request->responses as $questionId => $answer) {
+            $question = Question::find($questionId);
+
+            if (!$question) continue; 
+
+            if ($question->type_of_question === 'text') {
+               
+                Response::create([
+                    'question_id' => $questionId,
+                    'text_answer' => $answer,
+                ]);
+            } else {
+              
+                if (is_array($answer)) {
+                   
+                    foreach ($answer as $choiceId) {
+                        Response::create([
+                            'question_id' => $questionId,
+                            'choice_id' => $choiceId,
+                        ]);
+                    }
+                } else {
+                 
+                    Response::create([
+                        'question_id' => $questionId,
+                        'choice_id' => $answer,
+                    ]);
+                }
+            }
+        }
+
+        return redirect()->back()->with('success', 'Thank you for completing the survey!');
+    }
+
+
     public function statistics()
     {
         $questions = Question::with('choices.responses')->get();

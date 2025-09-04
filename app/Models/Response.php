@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Response extends Model
 {
-    protected $fillable = ['question_id', 'choice_id'];
+    use HasFactory;
+
+    protected $fillable = ['question_id', 'choice_id', 'text_answer'];
 
     public function question()
     {
