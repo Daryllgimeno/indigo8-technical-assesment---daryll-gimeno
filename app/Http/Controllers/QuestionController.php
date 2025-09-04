@@ -20,10 +20,11 @@ class QuestionController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'question_text' => 'required|string'
+            'question_text' => 'required|string',
+            'question_type' => 'required|string|in:radio,checkbox,text', 
         ]);
 
-        Question::create($request->all());
+        Question::create($request->only('question_text', 'question_type')); 
         return redirect()->route('questions.index')->with('success', 'Question added!');
     }
 
@@ -35,10 +36,11 @@ class QuestionController extends Controller
     public function update(Request $request, Question $question)
     {
         $request->validate([
-            'question_text' => 'required|string'
+            'question_text' => 'required|string',
+            'question_type' => 'required|string|in:radio,checkbox,text', 
         ]);
 
-        $question->update($request->all());
+        $question->update($request->only('question_text', 'question_type'));
         return redirect()->route('questions.index')->with('success', 'Question updated!');
     }
 
