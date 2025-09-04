@@ -15,7 +15,15 @@
     <tr>
         <td>{{ $question->id }}</td>
         <td>{{ $question->question_text }}</td>
-        <td>{{ $question->question_type ?? '-' }}</td>
+        <td>
+            @if($question->question_type == 'radio')
+                Multiple Choice (Single Answer)
+            @elseif($question->question_type == 'checkbox')
+                Multiple Choice (Multiple Answers)
+            @else
+                Text / Open-ended
+            @endif
+        </td>
         <td>
             <a href="{{ route('questions.edit', $question->id) }}">Edit</a> |
             <form action="{{ route('questions.destroy', $question->id) }}" method="POST" style="display:inline;">
@@ -23,7 +31,9 @@
                 @method('DELETE')
                 <button type="submit" onclick="return confirm('Delete this question?')">Delete</button>
             </form> |
-            <a href="{{ route('options.index', ['question_id' => $question->id]) }}">Options</a>
+            @if(in_array($question->question_type, ['radio','checkbox']))
+                <a href="{{ route('options.index', ['question_id' => $question->id]) }}">Options</a>
+            @endif
         </td>
     </tr>
     @endforeach

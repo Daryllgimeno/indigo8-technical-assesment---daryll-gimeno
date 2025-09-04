@@ -9,12 +9,24 @@
     @foreach($questions as $index => $question)
         <div class="question" style="{{ $index > 0 ? 'display:none;' : '' }}">
             <p><strong>Question {{ $index + 1 }}:</strong> {{ $question->question_text }}</p>
-            @foreach($question->options as $option)
-                <label>
-                    <input type="radio" name="answers[{{ $question->id }}]" value="{{ $option->id }}">
-                    {{ $option->option_text }}
-                </label><br>
-            @endforeach
+
+            @if($question->question_type === 'radio')
+                @foreach($question->options as $option)
+                    <label>
+                        <input type="radio" name="answers[{{ $question->id }}]" value="{{ $option->id }}">
+                        {{ $option->option_text }}
+                    </label><br>
+                @endforeach
+            @elseif($question->question_type === 'checkbox')
+                @foreach($question->options as $option)
+                    <label>
+                        <input type="checkbox" name="answers[{{ $question->id }}][]" value="{{ $option->id }}">
+                        {{ $option->option_text }}
+                    </label><br>
+                @endforeach
+            @elseif($question->question_type === 'text')
+                <textarea name="answers[{{ $question->id }}]" rows="3" cols="50" placeholder="Your answer here"></textarea>
+            @endif
         </div>
     @endforeach
 

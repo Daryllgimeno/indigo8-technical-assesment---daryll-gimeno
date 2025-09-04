@@ -17,16 +17,28 @@ class QuestionController extends Controller
         return view('questions.create');
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'question_text' => 'required|string',
-            'question_type' => 'required|string|in:radio,checkbox,text', 
-        ]);
+   public function store(Request $request)
+{
+    $request->validate([
+        'question_text' => 'required|string',
+        'question_type' => 'required|string',
+        'options' => 'sometimes|array'
+    ]);
 
-        Question::create($request->only('question_text', 'question_type')); 
-        return redirect()->route('questions.index')->with('success', 'Question added!');
+    $question = Question::create([
+        'question_text' => $request->question_text,
+        'question_type' => $request->question_type,
+    ]);
+
+    if(in_array($request->question_type, ['radio','checkbox']) && $request->options){
+        foreach($request->options as $optText){
+            $question->options()->create(['option_text' => $optText]);
+        }
     }
+
+    return redirect()->route('questions.index')->with('success', 'Question added!');
+}
+
 
     public function edit(Question $question)
     {

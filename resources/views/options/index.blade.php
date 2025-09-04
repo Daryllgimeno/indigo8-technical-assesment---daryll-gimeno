@@ -1,8 +1,11 @@
 <h1>Options for: {{ $question->question_text }}</h1>
+
 <a href="{{ route('options.create', ['question_id' => $question->id]) }}">Add Option</a>
+
 @if(session('success'))
-    <p>{{ session('success') }}</p>
+    <p style="color:green">{{ session('success') }}</p>
 @endif
+
 <table border="1">
     <tr>
         <th>ID</th>
@@ -24,4 +27,5 @@
     </tr>
     @endforeach
 </table>
+
 <a href="{{ route('questions.index') }}">Back to Questions</a>

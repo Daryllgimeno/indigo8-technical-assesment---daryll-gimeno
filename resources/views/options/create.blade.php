@@ -1,5 +1,9 @@
 <h1>Add Option for Question: {{ $question->question_text }}</h1>
 
+@if(session('success'))
+    <p style="color:green">{{ session('success') }}</p>
+@endif
+
 <form action="{{ route('options.store') }}" method="POST">
     @csrf
     <input type="hidden" name="question_id" value="{{ $question->id }}">
