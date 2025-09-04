@@ -58,4 +58,36 @@ nextBtn.addEventListener('click', () => {
     if (current < questions.length - 1) current++;
     showQuestion(current);
 });
+
+
+const surveyForm = document.getElementById('surveyForm');
+
+surveyForm.addEventListener('submit', function(e) {
+    let allAnswered = true;
+
+    questions.forEach(q => {
+        const inputs = q.querySelectorAll('input, textarea');
+        let answered = Array.from(inputs).some(input => {
+            if (input.type === 'radio' || input.type === 'checkbox') {
+                return input.checked;
+            } else if (input.tagName === 'TEXTAREA') {
+                return input.value.trim() !== '';
+            }
+            return false;
+        });
+
+        if (!answered) {
+            allAnswered = false;
+            q.style.border = "1px solid red"; 
+        } else {
+            q.style.border = "none";
+        }
+    });
+
+    if (!allAnswered) {
+        e.preventDefault();
+        alert("Please answer all questions before submitting.");
+    }
+});
+
 </script>

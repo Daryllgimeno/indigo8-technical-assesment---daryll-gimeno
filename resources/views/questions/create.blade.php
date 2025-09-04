@@ -1,12 +1,16 @@
-<h1>uestion</h1>
+<h1>Create Question</h1>
 
 <form action="{{ route('questions.store') }}" method="POST">
     @csrf
+
+    <!-- Question Text -->
     <div>
         <label for="question_text">Question Text:</label><br>
         <textarea name="question_text" id="question_text" rows="4" cols="50" required>{{ old('question_text') }}</textarea>
     </div>
     <br>
+
+    <!-- Question Type -->
     <div>
         <label for="question_type">Question Type:</label><br>
         <select name="question_type" id="question_type" required>
@@ -17,11 +21,13 @@
         </select>
     </div>
     <br>
-    <!-- Options div, initially hidden -->
+
+    <!-- Options (initially hidden) -->
     <div id="optionsDiv" style="display:none;">
         <label>Options:</label><br>
         <div id="optionsContainer">
-            <input type="text" name="options[]" placeholder="Option 1" required><br>
+            <!-- No required by default -->
+            <input type="text" name="options[]" placeholder="Option 1"><br>
         </div>
         <button type="button" id="addOptionBtn">Add Another Option</button>
         <br><br>
@@ -36,23 +42,41 @@ const optionsDiv = document.getElementById('optionsDiv');
 const optionsContainer = document.getElementById('optionsContainer');
 const addOptionBtn = document.getElementById('addOptionBtn');
 
+let optionCount = 1;
+
+// Show/hide optionsDiv based on question type
 questionType.addEventListener('change', () => {
     if(questionType.value === 'radio' || questionType.value === 'checkbox') {
         optionsDiv.style.display = '';
+
+        // Make all visible inputs required
+        optionsContainer.querySelectorAll('input').forEach(input => input.required = true);
     } else {
         optionsDiv.style.display = 'none';
+
+        // Remove required from inputs when hidden
+        optionsContainer.querySelectorAll('input').forEach(input => input.required = false);
     }
 });
 
-let optionCount = 1;
+// Add new option dynamically
 addOptionBtn.addEventListener('click', () => {
     optionCount++;
+    const optionDiv = document.createElement('div');
+
     const input = document.createElement('input');
     input.type = 'text';
     input.name = 'options[]';
     input.placeholder = 'Option ' + optionCount;
-    input.required = true;
-    optionsContainer.appendChild(input);
-    optionsContainer.appendChild(document.createElement('br'));
+    input.required = questionType.value === 'radio' || questionType.value === 'checkbox'; // only required if visible
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.textContent = 'Remove';
+    removeBtn.addEventListener('click', () => optionDiv.remove());
+
+    optionDiv.appendChild(input);
+    optionDiv.appendChild(removeBtn);
+    optionsContainer.appendChild(optionDiv);
 });
 </script>
