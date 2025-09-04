@@ -1,10 +1,13 @@
 <?php
 
 namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 class Question extends Model
 {
-    protected $fillable = ['question_text'];
+    use HasFactory;
+    protected $fillable = ['question_text','type_of_question'];
 
     public function choices()
     {

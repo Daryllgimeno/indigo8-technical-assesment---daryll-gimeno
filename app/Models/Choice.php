@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Choice extends Model
 {
-    protected $fillable = ['question_id', 'choice_text'];
+    use HasFactory;
+        protected $fillable = ['question_id', 'choice_text'];
 
     public function question()
     {

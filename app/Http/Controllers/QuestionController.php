@@ -18,31 +18,36 @@ class QuestionController extends Controller
         return view('questions.create');
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'question_text' => 'required'
-        ]);
+public function store(Request $request)
+{
+    $request->validate([
+        'question_text' => 'required',
+        'type_of_question' => 'required|in:multiple_choice,checkbox,text'
+    ]);
 
-        Question::create($request->all());
-        return redirect()->route('questions.index')->with('success', 'Question added successfully!');
-    }
+    Question::create($request->only('question_text', 'type_of_question'));
+
+    return redirect()->route('questions.index')->with('success', 'Question added successfully!');
+}
+
+
 
     public function edit(Question $question)
     {
         return view('questions.edit', compact('question'));
     }
 
-    public function update(Request $request, Question $question)
-    {
-        $request->validate([
-            'question_text' => 'required'
-        ]);
+  public function update(Request $request, Question $question)
+{
+    $request->validate([
+        'question_text' => 'required',
+        'type_of_question' => 'required|in:multiple_choice,checkbox,text'
+    ]);
 
-        $question->update($request->all());
-        return redirect()->route('questions.index')->with('success', 'Question updated successfully!');
-    }
+    $question->update($request->only('question_text', 'type_of_question'));
 
+    return redirect()->route('questions.index')->with('success', 'Question updated successfully!');
+}
     public function destroy(Question $question)
     {
         $question->delete();

@@ -15,6 +15,31 @@ class SurveyFormController extends Controller
         return view('surveyform.index', compact('questions'));
     }
 
+     public function store(Request $request)
+    {
+        $request->validate([
+            'question_text' => 'required',
+            'type_of_question' => 'required',
+            'choices.*' => 'nullable|string'
+        ]);
+
+        // Create the question
+        $question = Question::create($request->only('question_text', 'type_of_question'));
+
+        // Save choices if applicable
+        if ($request->type_of_question === 'multiple_choice' || $request->type_of_question === 'checkbox') {
+            if($request->has('choices')) {
+                foreach($request->choices as $choice_text) {
+                    if($choice_text) {
+                        $question->choices()->create(['choice_text' => $choice_text]);
+                    }
+                }
+            }
+        }
+
+        return redirect()->back()->with('success', 'Question added successfully!');
+    }
+
     // Submit survey responses
     public function submit(Request $request)
     {
