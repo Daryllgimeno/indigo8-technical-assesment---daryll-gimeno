@@ -8,66 +8,49 @@ use App\Models\Choice;
 
 class ChoiceController extends Controller
 {
-    // Show form to add choices
-
-
-     public function index(Question $question)
-    {
-        $question->load('choices'); 
-        return view('choices.index', compact('question'));
-    }
-    public function create(Question $question)
-    {
-        return view('choices.create', compact('question'));
-    }
-
-    // Store multiple choices at once
-   public function store(Request $request, Question $question)
+    
+public function index(Question $question)
 {
-    $request->validate([
-        'choices' => 'required|array|min:1',       
-        'choices.*' => 'required|string|max:255', 
-    ]);
-
-    foreach ($request->choices as $choice_text) {
-        if ($choice_text) {
-            $question->choices()->create(['choice_text' => $choice_text]);
-        }
-    }
-
-    return redirect()->route('questions.index')->with('success', 'Choices added successfully!');
+    $question->load('choices');
+    return view('choices.index', compact('question'));
 }
 
-    // Show form to edit a single choice
-    public function edit(Question $question, Choice $choice)
-    {
-        return view('choices.edit', compact('question', 'choice'));
-    }
+public function create(Question $question)
+{
+    return view('choices.create', compact('question'));
+}
 
-    // Update a single choice
-    public function update(Request $request, Question $question, Choice $choice)
-    {
-        $request->validate([
-            'choice_text' => 'required|string|max:255'
-        ]);
+public function store(Request $request, Question $question)
+{
+    $request->validate(['choice_text' => 'required|string|max:255']);
+    $question->choices()->create(['choice_text' => $request->choice_text]);
+    return redirect()->route('choices.index', $question->id)
+                     ->with('success', 'Choice added successfully!');
+}
 
-        $choice->update([
-            'choice_text' => $request->choice_text
-        ]);
+public function edit(Question $question, Choice $choice)
+{
+    return view('choices.edit', compact('question', 'choice'));
+}
 
-        return redirect()->route('questions.index')->with('success', 'Choice updated successfully!');
-    }
+public function update(Request $request, Question $question, Choice $choice)
+{
+    $request->validate(['choice_text' => 'required|string|max:255']);
+    $choice->update(['choice_text' => $request->choice_text]);
+    return redirect()->route('choices.index', $question->id)
+                     ->with('success', 'Choice updated successfully!');
+}
 
-    // Delete a choice
-    public function destroy(Question $question, Choice $choice)
-    {
-        $choice->delete();
-        return redirect()->route('questions.index')->with('success', 'Choice deleted successfully!');
-    }
+public function destroy(Question $question, Choice $choice)
+{
+    $choice->delete();
+    return redirect()->route('choices.index', $question->id)
+                     ->with('success', 'Choice deleted successfully!');
+}
+
 
     public function updateMultiple(Request $request, Question $question)
 {
-    // Update existing choices
     if ($request->has('choices_existing')) {
         foreach ($request->choices_existing as $id => $text) {
             $choice = $question->choices()->find($id);
@@ -77,7 +60,7 @@ class ChoiceController extends Controller
         }
     }
 
-    // Add new choices
+   
     if ($request->has('choices_new')) {
         foreach ($request->choices_new as $text) {
             if ($text) {

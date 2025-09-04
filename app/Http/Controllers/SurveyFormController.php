@@ -8,7 +8,7 @@ use App\Models\Response;
 
 class SurveyFormController extends Controller
 {
-    // Show all questions for survey
+    
     public function index()
     {
         $questions = Question::with('choices')->get();
@@ -23,10 +23,10 @@ class SurveyFormController extends Controller
             'choices.*' => 'nullable|string'
         ]);
 
-        // Create the question
+      
         $question = Question::create($request->only('question_text', 'type_of_question'));
 
-        // Save choices if applicable
+       
         if ($request->type_of_question === 'multiple_choice' || $request->type_of_question === 'checkbox') {
             if($request->has('choices')) {
                 foreach($request->choices as $choice_text) {
@@ -40,7 +40,7 @@ class SurveyFormController extends Controller
         return redirect()->back()->with('success', 'Question added successfully!');
     }
 
-    // Submit survey responses
+
     public function submit(Request $request)
     {
         $responses = $request->input('responses', []);
@@ -55,7 +55,7 @@ class SurveyFormController extends Controller
         return redirect()->route('surveyform.index')->with('success', 'Survey submitted successfully!');
     }
 
-    // Show survey statistics
+   
     public function statistics()
     {
         $questions = Question::with('choices.responses')->get();

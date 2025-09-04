@@ -22,7 +22,7 @@
                     @method('DELETE')
                     <button type="submit">Delete</button>
                 </form>
-                <a href="{{ route('choices.create', $question->id) }}">Manage Choices</a>
+                <a href="{{ route('choices.index', $question->id) }}">Manage Choices</a>
             </li>
         @endforeach
     </ul>
