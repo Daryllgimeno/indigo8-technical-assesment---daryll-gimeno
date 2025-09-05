@@ -81,7 +81,7 @@ class SurveyFormController extends Controller
 
     public function statistics()
     {
-        $questions = Question::with('choices.responses')->get();
-        return view('surveyform.statistics', compact('questions'));
+        $questions = Question::with(['choices.responses', 'responses'])->get();
+    return view('surveyform.statistics', compact('questions'));
     }
 }
