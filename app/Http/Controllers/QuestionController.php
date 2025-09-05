@@ -9,45 +9,72 @@ class QuestionController extends Controller
 {
     public function index()
     {
-        $questions = Question::all();
+        $questions = Question::with('choices')->get();
         return view('questions.index', compact('questions'));
     }
 
-    public function create()
+    public function store(Request $request)
     {
-        return view('questions.create');
+        // Validation rules
+        $rules = [
+            'question_text' => 'required|string',
+            'type_of_question' => 'required|in:multiple_choice,checkbox,text',
+        ];
+
+        // Extra validation if multiple choice or checkbox
+        if (in_array($request->type_of_question, ['multiple_choice', 'checkbox'])) {
+            $rules['choices'] = 'required|array|min:1';
+            $rules['choices.*'] = 'required|string';
+        }
+
+        $request->validate($rules);
+
+        // Create question
+        $question = Question::create($request->only('question_text', 'type_of_question'));
+
+        // Save choices
+        if ($request->has('choices')) {
+            foreach ($request->choices as $choiceText) {
+                $question->choices()->create(['choice_text' => $choiceText]);
+            }
+        }
+
+        return redirect()->route('questions.index')->with('success', 'Question added successfully!');
     }
-
-public function store(Request $request)
-{
-    $request->validate([
-        'question_text' => 'required',
-        'type_of_question' => 'required|in:multiple_choice,checkbox,text'
-    ]);
-
-    Question::create($request->only('question_text', 'type_of_question'));
-
-    return redirect()->route('questions.index')->with('success', 'Question added successfully!');
-}
-
-
 
     public function edit(Question $question)
     {
+        $question->load('choices');
         return view('questions.edit', compact('question'));
     }
 
-  public function update(Request $request, Question $question)
-{
-    $request->validate([
-        'question_text' => 'required',
-        'type_of_question' => 'required|in:multiple_choice,checkbox,text'
-    ]);
+    public function update(Request $request, Question $question)
+    {
+        $rules = [
+            'question_text' => 'required|string',
+            'type_of_question' => 'required|in:multiple_choice,checkbox,text',
+        ];
 
-    $question->update($request->only('question_text', 'type_of_question'));
+        if (in_array($request->type_of_question, ['multiple_choice', 'checkbox'])) {
+            $rules['choices'] = 'required|array|min:1';
+            $rules['choices.*'] = 'required|string';
+        }
 
-    return redirect()->route('questions.index')->with('success', 'Question updated successfully!');
-}
+        $request->validate($rules);
+
+        $question->update($request->only('question_text', 'type_of_question'));
+
+        
+        $question->choices()->delete();
+        if ($request->has('choices')) {
+            foreach ($request->choices as $choiceText) {
+                $question->choices()->create(['choice_text' => $choiceText]);
+            }
+        }
+
+        return redirect()->route('questions.index')->with('success', 'Question updated successfully!');
+    }
+
     public function destroy(Question $question)
     {
         $question->delete();
