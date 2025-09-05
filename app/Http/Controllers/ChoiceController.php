@@ -71,5 +71,31 @@ public function destroy(Question $question, Choice $choice)
 
     return redirect()->route('questions.index')->with('success', 'Choices updated successfully!');
 }
+public function updateForQuestion(Request $request, $questionId)
+{
+    $question = Question::findOrFail($questionId);
+
+
+    if ($request->has('choices')) {
+        foreach ($request->choices as $id => $text) {
+            $choice = $question->choices()->find($id);
+            if ($choice) {
+                $choice->update(['choice_text' => $text]);
+            }
+        }
+    }
+
+
+    if ($request->has('new_choices')) {
+        foreach ($request->new_choices as $text) {
+            if (!empty(trim($text))) {
+                $question->choices()->create(['choice_text' => $text]);
+            }
+        }
+    }
+
+    return back()->with('success', 'Choices updated successfully!');
+}
+
 
 }

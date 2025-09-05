@@ -62,11 +62,53 @@
                                 </button>
                             </form>
 
-                            @if(in_array($question->type_of_question, ['multiple_choice', 'checkbox']))
-    <a href="{{ route('choices.index', $question->id) }}" class="btn btn-sm btn-info">
+                          
+@if(in_array($question->type_of_question, ['multiple_choice', 'checkbox']))
+    <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#manageChoicesModal{{ $question->id }}">
         <i class="bi bi-list-check"></i> Manage Choices
-    </a>
+    </button>
 @endif
+
+{{-- Manage Choices Modal --}}
+<div class="modal fade" id="manageChoicesModal{{ $question->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form action="{{ route('choices.updateForQuestion', $question->id) }}" method="POST">
+                @csrf
+                @method('PUT')
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Manage Choices for Question: "{{ $question->question_text }}"</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="choicesList">
+                        @foreach($question->choices as $choice)
+                            <div class="input-group mb-2">
+                                <input type="text" name="choices[{{ $choice->id }}]" 
+                                       class="form-control" 
+                                       value="{{ $choice->choice_text }}">
+                                <button type="button" class="btn btn-danger removeChoiceBtn">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <button type="button" class="btn btn-sm btn-secondary addChoiceBtn">
+                        Add another choice
+                    </button>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Save Choices</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
                         </div>
                     </li>
@@ -262,6 +304,34 @@
             }
         });
     });
+
+
+    document.addEventListener("DOMContentLoaded", function() {
+  
+    document.querySelectorAll('.addChoiceBtn').forEach(button => {
+        button.addEventListener('click', function() {
+            const container = this.closest('.modal-body').querySelector('.choicesList');
+            const div = document.createElement('div');
+            div.className = "input-group mb-2";
+            div.innerHTML = `
+                <input type="text" name="new_choices[]" class="form-control" placeholder="New choice">
+                <button type="button" class="btn btn-danger removeChoiceBtn"><i class="bi bi-trash"></i></button>
+            `;
+            container.appendChild(div);
+
+            div.querySelector('.removeChoiceBtn').addEventListener('click', function() {
+                div.remove();
+            });
+        });
+    });
+
+
+    document.querySelectorAll('.removeChoiceBtn').forEach(button => {
+        button.addEventListener('click', function() {
+            this.closest('.input-group').remove();
+        });
+    });
+});
 </script>
 </body>
 </html>

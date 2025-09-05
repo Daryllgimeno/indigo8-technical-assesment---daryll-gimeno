@@ -5,7 +5,7 @@ use App\Http\Controllers\ChoiceController;
 use App\Http\Controllers\SurveyFormController;
 use Illuminate\Support\Facades\Route;
 
-// Welcome page (optional)
+
 Route::get('/welcome', function () {
     return view('welcome');
 });
@@ -18,8 +18,11 @@ Route::get('/surveyform/statistics', [SurveyFormController::class, 'statistics']
 // Question resource routes
 Route::resource('questions', QuestionController::class);
 
-// Choices nested under questions
+
 Route::prefix('questions/{question}')->group(function () {
     Route::resource('choices', ChoiceController::class)->except(['show']);
     Route::put('choices/update-multiple', [ChoiceController::class, 'updateMultiple'])->name('choices.updateMultiple');
 });
+Route::put('/questions/{question}/choices/update', [ChoiceController::class, 'updateForQuestion'])
+    ->name('choices.updateForQuestion');
+
