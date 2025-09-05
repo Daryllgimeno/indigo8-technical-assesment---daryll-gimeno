@@ -3,6 +3,7 @@
 <head>
     <title>Please Answer the Survey</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <style>
         body {
             background: #9bc0f8;
@@ -32,7 +33,10 @@
         <h1 class="card-title mb-4 text-center">Please Answer the Survey</h1>
 
         @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         @endif
 
         <div class="progress mb-4">
@@ -74,8 +78,16 @@
         </form>
     </div>
 </div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+   const alertNotification = document.querySelector('.alert');
+if (alertNotification) {
+    setTimeout(() => {
+        const name = bootstrap.Alert.getOrCreateInstance(alertNotification);
+        name.close();
+    }, 2000); 
+}
     let currentQuestion = 0;
     const questions = document.querySelectorAll('.question');
     const previousButton = document.getElementById('PreviousButton');
@@ -91,42 +103,34 @@ document.addEventListener('DOMContentLoaded', function () {
         nextButton.style.display = n === questions.length - 1 ? 'none' : 'inline-block';
         submitButton.classList.toggle('d-none', n !== questions.length - 1);
 
-       
         progressBar.style.width = ((n + 1) / questions.length) * 100 + '%';
     }
 
-  function validateQuestion(n) {
-    const questionBlock = questions[n];
-    const inputs = questionBlock.querySelectorAll('input');
-    let answered = false;
+    function validateQuestion(n) {
+        const questionBlock = questions[n];
+        const inputs = questionBlock.querySelectorAll('input');
+        let answered = false;
 
+        inputs.forEach(input => input.classList.remove('is-invalid'));
 
-    for (let i = 0; i < inputs.length; i++) {
-        inputs[i].classList.remove('is-invalid');
-    }
-
-    
-    for (let i = 0; i < inputs.length; i++) {
-        const input = inputs[i];
-
-        if ((input.type === 'radio' || input.type === 'checkbox') && input.checked) {
-            answered = true;
-            break;
+        for (let input of inputs) {
+            if ((input.type === 'radio' || input.type === 'checkbox') && input.checked) {
+                answered = true;
+                break;
+            }
+            if (input.type === 'text' && input.value.trim() !== '') {
+                answered = true;
+                break;
+            }
         }
-        if (input.type === 'text' && input.value.trim() !== '') {
-            answered = true;
-            break;
-        }
-    }
-    if (!answered) {
-        for (let i = 0; i < inputs.length; i++) {
-            inputs[i].classList.add('is-invalid');
-        }
-        return false;
-    }
 
-    return true;
-}
+        if (!answered) {
+            inputs.forEach(input => input.classList.add('is-invalid'));
+            return false;
+        }
+
+        return true;
+    }
 
     window.nextPrev = function(n) {
         if (n === 1 && !validateQuestion(currentQuestion)) return;

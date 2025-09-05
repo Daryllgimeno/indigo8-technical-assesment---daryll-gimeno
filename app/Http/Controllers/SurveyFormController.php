@@ -39,45 +39,44 @@ class SurveyFormController extends Controller
     }
 
    
-    public function submit(Request $request)
-    {
-        $request->validate([
-            'responses' => 'required|array',
-        ]);
+ public function submit(Request $request)
+{
+    $request->validate([
+        'responses' => 'required|array',
+    ]);
 
-        foreach ($request->responses as $questionId => $answer) {
-            $question = Question::find($questionId);
+    foreach ($request->responses as $questionId => $answer) {
+        $question = Question::find($questionId);
 
-            if (!$question) continue; 
+        if (!$question) continue;
 
-            if ($question->type_of_question === 'text') {
-               
-                Response::create([
-                    'question_id' => $questionId,
-                    'text_answer' => $answer,
-                ]);
-            } else {
-              
-                if (is_array($answer)) {
-                   
-                    foreach ($answer as $choiceId) {
-                        Response::create([
-                            'question_id' => $questionId,
-                            'choice_id' => $choiceId,
-                        ]);
-                    }
-                } else {
-                 
+        if ($question->type_of_question === 'text') {
+            Response::create([
+                'question_id' => $questionId,
+                'text_answer' => $answer,
+            ]);
+        } else {
+            if (is_array($answer)) {
+                foreach ($answer as $choiceId) {
                     Response::create([
                         'question_id' => $questionId,
-                        'choice_id' => $answer,
+                        'choice_id' => $choiceId,
                     ]);
                 }
+            } else {
+                Response::create([
+                    'question_id' => $questionId,
+                    'choice_id' => $answer,
+                ]);
             }
         }
-
-        return redirect()->back()->with('success', 'Thank you for completing the survey!');
     }
+
+ 
+    return redirect()->route('surveyform.index')
+                     ->with('success', 'Thank you for completing the survey!');
+}
+
 
 
     public function statistics()
