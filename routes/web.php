@@ -10,23 +10,18 @@ Route::get('/welcome', function () {
     return view('welcome');
 });
 
-
 Route::get('/', [SurveyFormController::class, 'index'])->name('surveyform.index');
 Route::post('/surveyform/submit', [SurveyFormController::class, 'submit'])->name('surveyform.submit');
 Route::get('/surveyform/statistics', [SurveyFormController::class, 'statistics'])->name('surveyform.statistics');
 
-
 Route::resource('questions', QuestionController::class);
-
 
 Route::prefix('questions/{question}')->group(function () {
     Route::resource('choices', ChoiceController::class)->except(['show']);
-
     
     Route::put('choices/update-multiple', [ChoiceController::class, 'updateMultiple'])
         ->name('choices.updateMultiple');
 
-   
     Route::put('choices/update-for-question', [ChoiceController::class, 'updateForQuestion'])
         ->name('choices.updateForQuestion');
 
