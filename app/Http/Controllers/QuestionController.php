@@ -12,35 +12,39 @@ class QuestionController extends Controller
         $questions = Question::with('choices')->get();
         return view('questions.index', compact('questions'));
     }
+public function store(Request $request)
+{
+  
+    $rules = [
+        'question_text' => 'required|string',
+        'type_of_question' => 'required|in:multiple_choice,checkbox,text',
+    ];
 
-    public function store(Request $request)
-    {
-        // Validation rules
-        $rules = [
-            'question_text' => 'required|string',
-            'type_of_question' => 'required|in:multiple_choice,checkbox,text',
-        ];
+   
+    if (in_array($request->type_of_question, ['multiple_choice', 'checkbox'])) {
+        $rules['choices'] = 'required|array|min:1';
+        $rules['choices.*'] = 'required|string';
+    }
 
-        // Extra validation if multiple choice or checkbox
-        if (in_array($request->type_of_question, ['multiple_choice', 'checkbox'])) {
-            $rules['choices'] = 'required|array|min:1';
-            $rules['choices.*'] = 'required|string';
-        }
+    $validated = $request->validate($rules);
 
-        $request->validate($rules);
+   
+    $question = Question::create([
+        'question_text' => $validated['question_text'],
+        'type_of_question' => $validated['type_of_question'],
+    ]);
 
-        // Create question
-        $question = Question::create($request->only('question_text', 'type_of_question'));
-
-        // Save choices
-        if ($request->has('choices')) {
-            foreach ($request->choices as $choiceText) {
+    
+    if (in_array($validated['type_of_question'], ['multiple_choice', 'checkbox'])) {
+        foreach ($validated['choices'] as $choiceText) {
+            if (!empty($choiceText)) { 
                 $question->choices()->create(['choice_text' => $choiceText]);
             }
         }
-
-        return redirect()->route('questions.index')->with('success', 'Question added successfully!');
     }
+
+    return redirect()->route('questions.index')->with('success', 'Question added successfully!');
+}
 
     public function edit(Question $question)
     {

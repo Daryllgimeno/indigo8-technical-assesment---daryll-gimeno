@@ -62,9 +62,12 @@
                                 </button>
                             </form>
 
-                            <a href="{{ route('choices.index', $question->id) }}" class="btn btn-sm btn-info">
-                                <i class="bi bi-list-check"></i> Manage Choices
-                            </a>
+                            @if(in_array($question->type_of_question, ['multiple_choice', 'checkbox']))
+    <a href="{{ route('choices.index', $question->id) }}" class="btn btn-sm btn-info">
+        <i class="bi bi-list-check"></i> Manage Choices
+    </a>
+@endif
+
                         </div>
                     </li>
 
