@@ -1,350 +1,224 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>List of Questions</title>
-   
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        body { background: #a0f3ce; }
-        .card { border-radius: 15px; }
-        .action-buttons form { display: inline-block; }
-        .action-buttons a, .action-buttons button { display: inline-flex; align-items: center; }
-        .action-buttons i { margin-right: 4px; }
-        .question-number { font-weight: bold; width: 30px; }
-        .question-info { font-size: 0.85rem; color: #555; margin-left: 16px; font-weight: 500; }
-        .question-header { font-size: 0.9rem; color: #333; font-weight: bold; margin-right: 8px; }
-        .choice-input { margin-bottom: 5px; }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .alert {
+            margin-bottom: 20px;
+        }
+        .question-list {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .question-item {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+        .question-item:last-child {
+            border-bottom: none;
+        }
+        .question-text {
+            font-weight: bold;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .action-buttons a,
+        .action-buttons button {
+            padding: 6px 12px;
+            font-size: 0.9rem;
+        }
+        .form-control {
+            border-radius: 5px;
+        }
+        .form-select {
+            border-radius: 5px;
+        }
+        .center-select {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        .add-question-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+        .choices-container {
+            margin-top: 15px;
+        }
+        .choice-input {
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
-<div class="container py-5">
-    <div class="card shadow-lg p-4 mx-auto" style="max-width: 800px;">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="card-title mb-0">List of Questions</h1>
-          
-            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addQuestionModal">
-                <i class="bi bi-plus-square"></i> Add New Question
-            </button>
-        </div>
 
-        @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
+    <h1>List of Questions</h1>
 
+    @if(session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
+
+    <div class="question-list">
         @if($questions->count())
-            <ul class="list-group">
-                @foreach($questions as $index => $question)
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div class="d-flex flex-column">
-                            <div class="d-flex align-items-center">
-                                <span class="question-number">{{ $index + 1 }}.</span>
-                                <span>{{ $question->question_text }}</span>
-                            </div>
-                            <div class="d-flex align-items-center mt-1">
-                                <span class="question-header">Type of Question:</span>
-                                <span class="question-info">{{ ucfirst($question->type_of_question) }}</span>
-                            </div>
+            @foreach($questions as $index => $question)
+                <div class="question-item">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <span>{{ $index + 1 }}. </span>
+                            <span class="question-text">{{ $question->question_text }}</span>
                         </div>
-
-                        <div class="action-buttons">
-                          
-                            <button class="btn btn-sm btn-warning me-2" data-bs-toggle="modal" data-bs-target="#editQuestionModal{{ $question->id }}">
-                                <i class="bi bi-pencil-square"></i> Edit
-                            </button>
-
-                            <form action="{{ route('questions.destroy', $question->id) }}" method="POST" class="me-2">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-danger">
-                                    <i class="bi bi-trash3"></i> Delete
-                                </button>
-                            </form>
-
-                          
-@if(in_array($question->type_of_question, ['multiple_choice', 'checkbox']))
-    <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#manageChoicesModal{{ $question->id }}">
-        <i class="bi bi-list-check"></i> Manage Choices
-    </button>
-@endif
-
-{{-- Manage Choices Modal --}}
-<div class="modal fade" id="manageChoicesModal{{ $question->id }}" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <form action="{{ route('choices.updateForQuestion', $question->id) }}" method="POST">
-                @csrf
-                @method('PUT')
-
-                <div class="modal-header">
-                    <h5 class="modal-title">Manage Choices for Question: "{{ $question->question_text }}"</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-
-                <div class="modal-body">
-                    <div class="choicesList">
-                        @foreach($question->choices as $choice)
-                            <div class="input-group mb-2">
-                                <input type="text" name="choices[{{ $choice->id }}]" 
-                                       class="form-control" 
-                                       value="{{ $choice->choice_text }}">
-                                <button type="button" class="btn btn-danger removeChoiceBtn">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-                        @endforeach
-                    </div>
-
-                    <button type="button" class="btn btn-sm btn-secondary addChoiceBtn">
-                        Add another choice
-                    </button>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-success">Save Choices</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-                        </div>
-                    </li>
-
-                  
-                    <div class="modal fade" id="editQuestionModal{{ $question->id }}" tabindex="-1" aria-labelledby="editQuestionLabel{{ $question->id }}" aria-hidden="true">
-                        <div class="modal-dialog modal-lg">
-                            <div class="modal-content">
-                                <form class="editQuestionForm" action="{{ route('questions.update', $question->id) }}" method="POST">
-                                    @csrf
-                                    @method('PUT')
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="editQuestionLabel{{ $question->id }}">Edit Question</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="mb-3">
-                                            <label class="form-label">Question Text:</label>
-                                            <textarea name="question_text" class="form-control" rows="4">{{ $question->question_text }}</textarea>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Question Type:</label>
-                                            <select class="form-select questionTypeEditModal" name="type_of_question" required>
-                                                <option value="">-- Select Type --</option>
-                                                <option value="multiple_choice" {{ $question->type_of_question == 'multiple_choice' ? 'selected' : '' }}>Multiple Choice</option>
-                                                <option value="checkbox" {{ $question->type_of_question == 'checkbox' ? 'selected' : '' }}>Checkbox</option>
-                                                <option value="text" {{ $question->type_of_question == 'text' ? 'selected' : '' }}>Text</option>
-                                            </select>
-                                        </div>
-
-                                        <div class="choicesContainerEditModal mb-3" style="display: {{ in_array($question->type_of_question, ['multiple_choice','checkbox']) ? 'block' : 'none' }};">
-                                            <label>Choices:</label>
-                                            <div class="choicesListEditModal">
-                                                @foreach($question->choices as $choice)
-                                                    <input type="text" name="choices[]" class="form-control choice-input mb-2" value="{{ $choice->choice_text }}">
-                                                @endforeach
-                                            </div>
-                                            <button type="button" class="btn btn-sm btn-secondary mt-1 addChoiceButtonEditModal">Add another choice</button>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="submit" class="btn btn-success">Update Question</button>
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                    </div>
-                                </form>
-                            </div>
+                        <div>
+                            <span><strong>Type:</strong> {{ ucfirst($question->type_of_question) }}</span>
                         </div>
                     </div>
 
-                @endforeach
-            </ul>
+                    <div class="action-buttons mt-3">
+                        <a href="{{ route('questions.edit', $question->id) }}" class="btn btn-warning btn-sm">
+                            Edit
+                        </a>
+                        <form action="{{ route('questions.destroy', $question->id) }}" method="POST" class="d-inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                        @if($question->type_of_question !== 'text')
+                            <a href="{{ route('choices.index', $question->id) }}" class="btn btn-info btn-sm">
+                                Manage Choices
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            @endforeach
         @else
-            <p class="text-center mt-3">No questions found. Please add a new question.</p>
+            <p>No questions found. Please add a new question.</p>
         @endif
     </div>
-</div>
 
+    <button class="btn btn-success add-question-btn" data-bs-toggle="modal" data-bs-target="#addQuestionModal">
+        Add Question
+    </button>
 
-<div class="modal fade" id="addQuestionModal" tabindex="-1" aria-labelledby="addQuestionLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <form id="addQuestionForm" action="{{ route('questions.store') }}" method="POST">
-                @csrf
+    <div class="modal fade" id="addQuestionModal" tabindex="-1" aria-labelledby="addQuestionModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addQuestionLabel">Add Question</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title" id="addQuestionModalLabel">Add Question</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Question Text:</label>
-                        <textarea name="question_text" class="form-control" rows="4"></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Question Type:</label>
-                        <select id="questionTypeAddModal" name="type_of_question" class="form-select" required>
-                            <option value="">-- Select Type --</option>
-                            <option value="multiple_choice">Multiple Choice</option>
-                            <option value="checkbox">Checkbox</option>
-                            <option value="text">Text</option>
-                        </select>
-                    </div>
+                <form id="addQuestionForm" action="{{ route('questions.store') }}" method="POST">
+                    @csrf
+                    <div class="modal-body">
+                        @if($errors->any())
+                            <div class="alert alert-danger">
+                                <ul class="mb-0">
+                                    @foreach($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
 
-                    <div id="choicesContainerAddModal" style="display:none;" class="mb-3">
-                        <label>Choices:</label>
-                        <div id="choicesListAddModal">
-                            <input type="text" name="choices[]" class="form-control choice-input mb-2" placeholder="Enter choice">
+                        <div class="mb-3">
+                            <label for="question_text" class="form-label">Question Text:</label>
+                            <textarea name="question_text" class="form-control" id="question_text" rows="3">{{ old('question_text') }}</textarea>
                         </div>
-                        <button type="button" id="addChoiceButtonAddModal" class="btn btn-sm btn-secondary mt-1">Add another choice</button>
+
+                        <div class="mb-3">
+                            <label for="questionType" class="form-label">Question Type:</label>
+                            <div class="center-select">
+                                <select id="questionType" name="type_of_question" class="form-select" required>
+                                    <option value="">-- Select Type --</option>
+                                    <option value="multiple_choice" {{ old('type_of_question') == 'multiple_choice' ? 'selected' : '' }}>Multiple Choice</option>
+                                    <option value="checkbox" {{ old('type_of_question') == 'checkbox' ? 'selected' : '' }}>Checkbox</option>
+                                    <option value="text" {{ old('type_of_question') == 'text' ? 'selected' : '' }}>Text</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="choicesContainer" class="choices-container" style="display: none;">
+                            <label for="choices" class="form-label">Choices:</label>
+                            <div id="choicesList">
+                                <input type="text" name="choices[]" class="form-control choice-input" placeholder="Enter choice">
+                            </div>
+                            <button type="button" id="addChoiceBtn" class="btn btn-secondary btn-sm mt-2">Add another choice</button>
+                        </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-success">Save Question</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </form>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">Save</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    
-    const addQuestionForm = document.getElementById('addQuestionForm');
-    const questionTypeAddModal = document.getElementById('questionTypeAddModal');
-    const choicesContainerAddModal = document.getElementById('choicesContainerAddModal');
-    const choicesListAddModal = document.getElementById('choicesListAddModal');
-    const addChoiceButtonAddModal = document.getElementById('addChoiceButtonAddModal');
+    <script>
+        const addQuestionForm = document.getElementById('addQuestionForm');
+        const questionTextInput = addQuestionForm.querySelector('textarea[name="question_text"]');
+        const questionTypeSelect = addQuestionForm.querySelector('select[name="type_of_question"]');
+        const choicesContainer = document.getElementById('choicesContainer');
+        const choicesList = document.getElementById('choicesList');
+        const addChoiceBtn = document.getElementById('addChoiceBtn');
 
-    questionTypeAddModal.addEventListener('change', function() {
-        choicesContainerAddModal.style.display = (this.value === 'multiple_choice' || this.value === 'checkbox') ? 'block' : 'none';
-    });
-
-    addChoiceButtonAddModal.addEventListener('click', function() {
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.name = 'choices[]';
-        input.className = 'form-control choice-input mb-2';
-        input.placeholder = 'Enter choice';
-        choicesListAddModal.appendChild(input);
-    });
-
-   
-    addQuestionForm.addEventListener('submit', function(e) {
-        let errors = [];
-
-        const questionText = addQuestionForm.querySelector('textarea[name="question_text"]').value.trim();
-        const questionType = questionTypeAddModal.value;
-
-        if (!questionText) errors.push('Question text is required.');
-        if (!questionType) errors.push('Question type is required.');
-
-        if (questionType === 'multiple_choice' || questionType === 'checkbox') {
-            const choiceInputs = choicesListAddModal.querySelectorAll('input[name="choices[]"]');
-            const filledChoices = Array.from(choiceInputs).filter(input => input.value.trim() !== '');
-
-            if (filledChoices.length === 0) {
-                errors.push('At least one choice is required.');
+        questionTypeSelect.addEventListener('change', function() {
+            if(this.value === 'multiple_choice' || this.value === 'checkbox') {
+                choicesContainer.style.display = 'block';
+            } else {
+                choicesContainer.style.display = 'none';
             }
-
-            choiceInputs.forEach((input, index) => {
-                if (!input.value.trim()) {
-                    errors.push(`Choice #${index + 1} cannot be empty.`);
-                }
-            });
-        }
-
-        if (errors.length > 0) {
-            e.preventDefault();
-            alert(errors.join("\n"));
-        }
-    });
-
-    
-    document.querySelectorAll('.editQuestionForm').forEach((form) => {
-        const select = form.querySelector('.questionTypeEditModal');
-        const choicesContainer = form.querySelector('.choicesContainerEditModal');
-        const addChoiceBtn = form.querySelector('.addChoiceButtonEditModal');
-        const choicesList = form.querySelector('.choicesListEditModal');
-
-        select.addEventListener('change', function() {
-            choicesContainer.style.display = (this.value === 'multiple_choice' || this.value === 'checkbox') ? 'block' : 'none';
         });
 
         addChoiceBtn.addEventListener('click', function() {
             const input = document.createElement('input');
             input.type = 'text';
             input.name = 'choices[]';
-            input.className = 'form-control choice-input mb-2';
+            input.className = 'form-control choice-input';
             input.placeholder = 'Enter choice';
             choicesList.appendChild(input);
         });
 
-        form.addEventListener('submit', function(e) {
+        addQuestionForm.addEventListener('submit', function(e) {
             let errors = [];
-            const qText = form.querySelector('textarea[name="question_text"]').value.trim();
-            const qType = select.value;
 
-            if (!qText) errors.push('Question text is required.');
-            if (!qType) errors.push('Question type is required.');
-
-            if (qType === 'multiple_choice' || qType === 'checkbox') {
-                const choiceInputs = choicesList.querySelectorAll('input[name="choices[]"]');
-                const filled = Array.from(choiceInputs).filter(input => input.value.trim() !== '');
-                if (filled.length === 0) errors.push('At least one choice is required.');
-                choiceInputs.forEach((input, i) => {
-                    if (!input.value.trim()) errors.push(`Choice #${i+1} cannot be empty.`);
-                });
+            if(questionTextInput.value.trim() === '') {
+                errors.push('Question text is required.');
             }
 
-            if (errors.length > 0) {
+            if(questionTypeSelect.value === '') {
+                errors.push('Question type is required.');
+            }
+
+            if((questionTypeSelect.value === 'multiple_choice' || questionTypeSelect.value === 'checkbox') && choicesList.querySelectorAll('input[name="choices[]"]').length === 0) {
+                errors.push('At least one choice is required.');
+            }
+
+            if(errors.length > 0) {
                 e.preventDefault();
-                alert(errors.join("\n"));
+                alert(errors.join('\n'));
             }
         });
-    });
+    </script>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-    document.addEventListener("DOMContentLoaded", function() {
-         const alertNotification = document.querySelector('.alert-success');
-    if (alertNotification) {
-    
-        setTimeout(() => {
-            const autoDismissible = bootstrap.Alert.getOrCreateInstance(alertNotification);
-            autoDismissible.close();
-        }, 2000); 
-
-        
-        setTimeout(() => {
-            location.reload();
-        }, 2200); 
-    }
-  
-    document.querySelectorAll('.addChoiceBtn').forEach(button => {
-        button.addEventListener('click', function() {
-            const container = this.closest('.modal-body').querySelector('.choicesList');
-            const div = document.createElement('div');
-            div.className = "input-group mb-2";
-            div.innerHTML = `
-                <input type="text" name="new_choices[]" class="form-control" placeholder="New choice">
-                <button type="button" class="btn btn-danger removeChoiceBtn"><i class="bi bi-trash"></i></button>
-            `;
-            container.appendChild(div);
-
-            div.querySelector('.removeChoiceBtn').addEventListener('click', function() {
-                div.remove();
-            });
-        });
-    });
-
-
-    document.querySelectorAll('.removeChoiceBtn').forEach(button => {
-        button.addEventListener('click', function() {
-            this.closest('.input-group').remove();
-        });
-    });
-});
-</script>
 </body>
 </html>
