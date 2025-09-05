@@ -1,18 +1,14 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Survey Statistics Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             background: #f0f8ff;
-        }
-        .card-question {
-            border-radius: 12px;
-            margin-bottom: 2rem;
-            padding: 1.5rem;
-            box-shadow: 0 0.3rem 0.6rem rgba(0,0,0,0.1);
         }
         .chart-container {
             position: relative;
@@ -26,15 +22,10 @@
             cursor: pointer;
             color: #0d6efd;
         }
-        .summary-bar .card {
-            border-radius: 10px;
-            padding: 1rem;
-            text-align: center;
+        .summary-bar {
+            margin-bottom: 2rem;
         }
-        .summary-bar .card h5 {
-            margin-bottom: 0.5rem;
-        }
-        .summary-bar .card p {
+        .summary-bar p {
             font-size: 1.25rem;
             font-weight: bold;
         }
@@ -43,7 +34,7 @@
 <body>
 <div class="container py-5">
 
-    <h1 class="text-center mb-5"> Survey  Dashboard</h1>
+    <h1 class="text-center mb-5">Survey Dashboard</h1>
 
     @php
         $totalQuestions = $questions->count();
@@ -51,35 +42,29 @@
         $averageCompletion = $totalQuestions > 0 ? round($totalResponsesAll / $totalQuestions, 2) : 0;
     @endphp
 
-    
-    <div class="row summary-bar mb-5">
-        <div class="col-md-4 mb-3">
-            <div class="card bg-primary text-white shadow-sm">
+    <div class="summary-bar mb-5">
+        <div class="row">
+            <div class="col-md-4 mb-3">
                 <h5>Total Questions</h5>
                 <p>{{ $totalQuestions }}</p>
             </div>
-        </div>
-        <div class="col-md-4 mb-3">
-            <div class="card bg-success text-white shadow-sm">
+            <div class="col-md-4 mb-3">
                 <h5>Total Responses</h5>
                 <p>{{ $totalResponsesAll }}</p>
             </div>
-        </div>
-        <div class="col-md-4 mb-3">
-            <div class="card bg-warning text-dark shadow-sm">
+            <div class="col-md-4 mb-3">
                 <h5>Average Completion</h5>
                 <p>{{ $averageCompletion }}</p>
             </div>
         </div>
     </div>
 
-    {{-- Questions --}}
     @foreach($questions as $index => $question)
         @php
             $totalResponses = $question->responses->count();
         @endphp
 
-        <div class="card-question">
+        <div class="mb-4">
             <h5>
                 {{ $index + 1 }}. {{ $question->question_text }}
                 <span class="badge bg-info">{{ $totalResponses }} responses</span>
@@ -117,7 +102,7 @@
                             ];
                             const data = [
                                 @foreach($question->choices as $choice)
-                                    {{ $choice->responses->count() }},
+                                    {{ $choice->responses->count() }} ,
                                 @endforeach
                             ];
 
@@ -168,7 +153,6 @@
                             });
                         })();
                     </script>
-
                 @elseif($question->type_of_question === 'text')
                     <ul class="list-group mt-3">
                         @forelse($question->responses as $response)

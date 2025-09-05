@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Please Answer the Survey</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -21,9 +23,7 @@
         .progress {
             height: 8px;
         }
-        .is-invalid {
-            border-color: #dc3545 !important;
-        }
+        
     </style>
 </head>
 <body>
@@ -39,12 +39,20 @@
             </div>
         @endif
 
+        <div class="mb-3">
+            <label for="email" class="form-label">Email (optional for confirmation)</label>
+            <input type="email" name="email" id="email" class="form-control" placeholder="Enter your email">
+            <small class="text-muted">You want to receive your response?</small>
+        </div>
+
         <div class="progress mb-4">
             <div id="progressBar" class="progress-bar" role="progressbar" style="width:0%"></div>
         </div>
 
         <form id="surveyForm" action="{{ route('surveyform.submit') }}" method="POST">
             @csrf
+
+            <input type="hidden" name="email" id="hiddenEmail" value="{{ old('email') }}">
 
             @foreach($questions as $index => $question)
                 <div class="question {{ $index === 0 ? 'active' : '' }} mb-4 p-3 border rounded bg-white">
@@ -80,20 +88,23 @@
 </div>
 
 <script>
+
 document.addEventListener('DOMContentLoaded', function () {
    const alertNotification = document.querySelector('.alert');
-if (alertNotification) {
-    setTimeout(() => {
-        const name = bootstrap.Alert.getOrCreateInstance(alertNotification);
-        name.close();
-    }, 2000); 
-}
+   if (alertNotification) {
+       setTimeout(() => {
+           const name = bootstrap.Alert.getOrCreateInstance(alertNotification);
+           name.close();
+       }, 2000); 
+   }
+
     let currentQuestion = 0;
     const questions = document.querySelectorAll('.question');
     const previousButton = document.getElementById('PreviousButton');
     const nextButton = document.getElementById('NextButton');
     const submitButton = document.getElementById('SubmitButton');
     const progressBar = document.getElementById('progressBar');
+    const emailInput = document.getElementById('email');
 
     function showQuestion(n) {
         questions.forEach(q => q.classList.remove('active'));
@@ -148,6 +159,8 @@ if (alertNotification) {
                 return; 
             }
         }
+
+        document.getElementById('hiddenEmail').value = emailInput.value;
     });
 
     if (questions.length > 0) showQuestion(currentQuestion);
