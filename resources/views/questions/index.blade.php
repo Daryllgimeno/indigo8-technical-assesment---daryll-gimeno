@@ -307,6 +307,19 @@
 
 
     document.addEventListener("DOMContentLoaded", function() {
+         const alertNotification = document.querySelector('.alert-success');
+    if (alertNotification) {
+    
+        setTimeout(() => {
+            const autoDismissible = bootstrap.Alert.getOrCreateInstance(alertNotification);
+            autoDismissible.close();
+        }, 2000); 
+
+        
+        setTimeout(() => {
+            location.reload();
+        }, 2200); 
+    }
   
     document.querySelectorAll('.addChoiceBtn').forEach(button => {
         button.addEventListener('click', function() {
